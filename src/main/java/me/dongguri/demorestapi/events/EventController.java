@@ -27,7 +27,7 @@ public class EventController {
     @PostMapping
     public ResponseEntity createEvent(@RequestBody  Event event) {
         Event newEvent = this.eventRepository.save(event);
-        URI createdUri = linkTo(EventController.class).slash("{id}").toUri(); //URI로 만듬
+        URI createdUri = linkTo(EventController.class).slash(newEvent.getId()).toUri(); //URI로 만듬
         return ResponseEntity.created(createdUri).body(event);
     }
 }
