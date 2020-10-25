@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc// mock mvc를 사용할 수 있게된다.
 public class EventControllerTests {
 
     @Autowired
@@ -40,6 +40,35 @@ public class EventControllerTests {
 
     @Test
     public void createEvent() throws Exception {
+        EventDto event = EventDto.builder()
+                .name("Spring")
+                .description("REST API dev")
+                .beginEnrollmentDateTime(LocalDateTime.of(2017,11,23,12,12))
+                .closeEnrollmentDateTime(LocalDateTime.of(2018,1,24,15,12))
+                .beginEventDateTime(LocalDateTime.of(2018,11,12,15,11))
+                .endEventDateTime(LocalDateTime.of(2018,2,1,15,12))
+                .basePrice(100)
+                .maxPrice(200)
+                .limitOfEnrollment(100)
+                .location("강념역 D2")
+                .build();
+
+        mockMvc.perform(post("/api/events/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(event))) // json으로
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("id").exists())
+                .andExpect(header().exists(HttpHeaders.LOCATION))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE,MediaTypes.HAL_JSON_VALUE))
+                .andExpect(jsonPath("id").value(Matchers.not(100)))
+                .andExpect(jsonPath("free").value(Matchers.not(true)))
+                .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()));
+    }
+    @Test
+
+    public void createBadEvent() throws Exception {
         Event event = Event.builder()
                 .id(100)
                 .name("Spring")
@@ -57,20 +86,17 @@ public class EventControllerTests {
                 .build();
 
         mockMvc.perform(post("/api/events/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaTypes.HAL_JSON_VALUE)
-                        .content(objectMapper.writeValueAsString(event))) // json으로
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON_VALUE)
+                .content(objectMapper.writeValueAsString(event))) // json으로
                 .andDo(print())
-                .andExpect(status().isCreated())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("id").exists())
                 .andExpect(header().exists(HttpHeaders.LOCATION))
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE,MediaTypes.HAL_JSON_VALUE))
                 .andExpect(jsonPath("id").value(Matchers.not(100)))
                 .andExpect(jsonPath("free").value(Matchers.not(true)))
                 .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()));
-
-
     }
-
 
 }
