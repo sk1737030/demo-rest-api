@@ -36,7 +36,7 @@ public class EventControllerTests {
     MockMvc mockMvc;
 
     @Autowired
-    ObjectMapper objectMapper;
+    ObjectMapper objectMapper; // 자바Spec에 맞게 등록된 Bean Serialize로  변환해준다.
 
 
     @Test
@@ -45,29 +45,30 @@ public class EventControllerTests {
         EventDto event = EventDto.builder()
                 .name("Spring")
                 .description("REST API dev")
-                .beginEnrollmentDateTime(LocalDateTime.of(2017,11,23,12,12))
-                .closeEnrollmentDateTime(LocalDateTime.of(2018,1,24,15,12))
-                .beginEventDateTime(LocalDateTime.of(2018,11,12,15,11))
-                .endEventDateTime(LocalDateTime.of(2018,2,1,15,12))
+                .beginEnrollmentDateTime(LocalDateTime.of(2017, 11, 23, 12, 12))
+                .closeEnrollmentDateTime(LocalDateTime.of(2018, 1, 24, 15, 12))
+                .beginEventDateTime(LocalDateTime.of(2018, 11, 12, 15, 11))
+                .endEventDateTime(LocalDateTime.of(2018, 2, 1, 15, 12))
                 .basePrice(100)
                 .maxPrice(200)
                 .limitOfEnrollment(100)
                 .location("강념역 D2")
                 .build();
 
-        mockMvc.perform(post("/api/events/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaTypes.HAL_JSON_VALUE)
-                        .content(objectMapper.writeValueAsString(event))) // json으로
+        mockMvc.perform(post("/api/events")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON_VALUE)
+                .content(objectMapper.writeValueAsString(event))) // json으로
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id").exists())
                 .andExpect(header().exists(HttpHeaders.LOCATION))
-                .andExpect(header().string(HttpHeaders.CONTENT_TYPE,MediaTypes.HAL_JSON_VALUE))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
                 .andExpect(jsonPath("id").value(Matchers.not(100)))
                 .andExpect(jsonPath("free").value(Matchers.not(true)))
                 .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()));
     }
+
     @Test
     @TestDescription("입력 받을 수 없는 값을 사용한 경우에 에러가 발생하는 테스트")
     public void createBadEvent() throws Exception {
@@ -75,10 +76,10 @@ public class EventControllerTests {
                 .id(100)
                 .name("Spring")
                 .description("REST API dev")
-                .beginEnrollmentDateTime(LocalDateTime.of(2017,11,23,12,12))
-                .closeEnrollmentDateTime(LocalDateTime.of(2018,1,24,15,12))
-                .beginEventDateTime(LocalDateTime.of(2018,11,12,15,11))
-                .endEventDateTime(LocalDateTime.of(2018,2,1,15,12))
+                .beginEnrollmentDateTime(LocalDateTime.of(2017, 11, 23, 12, 12))
+                .closeEnrollmentDateTime(LocalDateTime.of(2018, 1, 24, 15, 12))
+                .beginEventDateTime(LocalDateTime.of(2018, 11, 12, 15, 11))
+                .endEventDateTime(LocalDateTime.of(2018, 2, 1, 15, 12))
                 .basePrice(100)
                 .maxPrice(200)
                 .limitOfEnrollment(100)
@@ -87,7 +88,7 @@ public class EventControllerTests {
                 .offline(false)
                 .build();
 
-        mockMvc.perform(post("/api/events/")
+        mockMvc.perform(post("/api/events")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaTypes.HAL_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(event))) // json으로
@@ -95,7 +96,7 @@ public class EventControllerTests {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("id").exists())
                 .andExpect(header().exists(HttpHeaders.LOCATION))
-                .andExpect(header().string(HttpHeaders.CONTENT_TYPE,MediaTypes.HAL_JSON_VALUE))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
                 .andExpect(jsonPath("id").value(Matchers.not(100)))
                 .andExpect(jsonPath("free").value(Matchers.not(true)))
                 .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()));
@@ -108,8 +109,8 @@ public class EventControllerTests {
         EventDto eventDto = EventDto.builder().build();
 
         this.mockMvc.perform(post("/api/events")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(this.objectMapper.writeValueAsString(eventDto)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(this.objectMapper.writeValueAsString(eventDto)))
                 .andExpect(status().isBadRequest());
 
     }
@@ -120,20 +121,25 @@ public class EventControllerTests {
         EventDto eventDto = EventDto.builder()
                 .name("Spring")
                 .description("REST API dev")
-                .beginEnrollmentDateTime(LocalDateTime.of(2017,11,23,12,12))
-                .closeEnrollmentDateTime(LocalDateTime.of(2018,1,24,15,12))
-                .beginEventDateTime(LocalDateTime.of(2018,11,12,15,11))
-                .endEventDateTime(LocalDateTime.of(2018,2,1,15,12))
+                .beginEnrollmentDateTime(LocalDateTime.of(2018, 11, 23, 12, 12))
+                .closeEnrollmentDateTime(LocalDateTime.of(2018, 11, 24, 15, 12))
+                .beginEventDateTime(LocalDateTime.of(2018, 11, 12, 15, 11))
+                .endEventDateTime(LocalDateTime.of(2018, 11, 1, 15, 12))
                 .basePrice(10000)
                 .maxPrice(10)
                 .limitOfEnrollment(100)
                 .location("강념역 D2")
                 .build();
 
-        mockMvc.perform(post("/api/events/")
+        mockMvc.perform(post("/api/events")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(eventDto))) // json으로
-                .andExpect(status().isBadRequest());
+                .content(this.objectMapper.writeValueAsString(eventDto))) // json으로
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].objectName").exists())
+                .andExpect(jsonPath("$[0].defaultMessage").exists())
+                .andExpect(jsonPath("$[0].code").exists())
+        ;
     }
 
 
