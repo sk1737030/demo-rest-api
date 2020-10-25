@@ -41,7 +41,7 @@ public class Event {
         }
 
         // update offline (isBlank Java11)
-        if(this.location == null && this.location.isBlank()) {
+        if(this.location == null || this.location.isBlank()) {
             this.offline = false;
         }else {
             this.offline = true;
