@@ -30,14 +30,18 @@ public class EventController {
         this.eventValidator = eventValidator;
     }
 
+    /**
+     * Bean Serializer
+     * 자바스펙준수 할경우 json으로 자동변환해준다
+     */
     @PostMapping
     public ResponseEntity createEvent(@RequestBody @Valid EventDto eventDto, Errors errors) {
         if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(errors);
         }
         eventValidator.validate(eventDto, errors);
         if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(errors);
         }
         /*
         기존에는 이런식으로 넣어야한다.
@@ -45,9 +49,13 @@ public class EventController {
                 .name(eventDto.getName())
                 .build()
         */
+
         Event event = modelMapper.map(eventDto, Event.class);
+        event.update();
+
         Event newEvent = this.eventRepository.save(event);
         URI createdUri = linkTo(EventController.class).slash(newEvent.getId()).toUri(); //URI로 만듬
+
         return ResponseEntity.created(createdUri).body(event);
     }
 }

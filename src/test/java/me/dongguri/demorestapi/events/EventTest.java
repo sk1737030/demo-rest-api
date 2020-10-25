@@ -16,6 +16,7 @@ class EventTest {
         assertThat(event).isNotNull();
     }
 
+
     @Test
     public void javaBean() {
         // given
@@ -30,5 +31,57 @@ class EventTest {
         // that
         assertThat(event.getName()).isEqualTo(name);
         assertThat(event.getDescription()).isEqualTo(spring);
+    }
+
+    @Test
+    public void testFree() {
+        // Given
+        Event event = Event.builder()
+                .basePrice(0)
+                .maxPrice(0)
+                .build();
+
+        // when
+        event.update();
+
+        // then
+        assertThat(event.isFree()).isTrue();
+
+        // Given
+        event = Event.builder()
+                .basePrice(0)
+                .maxPrice(100)
+                .build();
+
+        // when
+        event.update();
+
+        assertThat(event.isFree()).isFalse();
+    }
+
+    @Test
+    public void trestOffline() {
+        // Given
+        Event event = Event.builder()
+                .location("강남역 네이버 D2 스타텁 팩토리")
+                .build();
+
+        // when
+        event.update();
+
+        // then
+        assertThat(event.isOffline()).isTrue();
+
+        // Given
+        event = Event.builder()
+                .build();
+
+        // when
+        event.update();
+
+        // then
+        assertThat(event.isOffline()).isFalse();
+
+
     }
 }
