@@ -1,18 +1,19 @@
 package me.dongguri.demorestapi.events;
 
 import lombok.*;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Builder
 @AllArgsConstructor
-@EqualsAndHashCode(of = {"id"})
+@EqualsAndHashCode(of = {"id"}, callSuper = false)
 @NoArgsConstructor
 @Getter
 @Setter
 @Entity
-public class Event {
+public class Event extends RepresentationModel<Event> {
 
 
     @Id @GeneratedValue

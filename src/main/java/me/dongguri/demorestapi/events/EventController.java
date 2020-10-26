@@ -2,6 +2,10 @@ package me.dongguri.demorestapi.events;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.server.mvc.ControllerLinkBuilder;
+import org.springframework.hateoas.server.mvc.ControllerLinkRelationProvider;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.Errors;
@@ -42,20 +46,29 @@ public class EventController {
         eventValidator.validate(eventDto, errors);
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(errors);
+
         }
         /*
         기존에는 이런식으로 넣어야한다.
         Event event = Event.builder()
                 .name(eventDto.getName())
                 .build()
+        modelMapper로 쉽게 변경가능
         */
 
         Event event = modelMapper.map(eventDto, Event.class);
         event.update();
 
         Event newEvent = this.eventRepository.save(event);
-        URI createdUri = linkTo(EventController.class).slash(newEvent.getId()).toUri(); //URI로 만듬
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(EventController.class).slash(newEvent.getId());
+        URI createdUri = selfLinkBuilder.toUri(); //URI로 만듬
 
-        return ResponseEntity.created(createdUri).body(event);
+      /*  EventResource eventResource = new EventResource(newEvent);*/
+
+        newEvent.add(linkTo(EventController.class).withRel("query-events"));
+        newEvent.add(selfLinkBuilder.withSelfRel());
+        newEvent.add(selfLinkBuilder.withRel("update-event"));
+
+        return ResponseEntity.created(createdUri).body(newEvent);
     }
 }
