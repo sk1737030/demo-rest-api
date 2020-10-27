@@ -44,10 +44,10 @@ public class EventController {
             return ResponseEntity.badRequest().body(errors);
         }
         eventValidator.validate(eventDto, errors);
-        if (errors.hasErrors()) {
+     /*   if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(errors);
 
-        }
+        }*/
         /*
         기존에는 이런식으로 넣어야한다.
         Event event = Event.builder()

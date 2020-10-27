@@ -2,6 +2,7 @@ package me.dongguri.demorestapi.events;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.dongguri.demorestapi.common.RestDocsConfiguration;
 import me.dongguri.demorestapi.common.TestDescription;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -9,10 +10,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -24,6 +27,11 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 
 import java.time.LocalDateTime;
 
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
+import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
+import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -31,6 +39,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc// mock mvc를 사용할 수 있게된다.
+@AutoConfigureRestDocs
+@Import(RestDocsConfiguration.class)// 다른 스프링 Bean설정 파일을 읽어오는 방법
 public class EventControllerTests {
 
     @Autowired
@@ -71,6 +81,53 @@ public class EventControllerTests {
                 .andExpect(jsonPath("_links.self").exists())
                 .andExpect(jsonPath("_links.query-events").exists())
                 .andExpect(jsonPath("_links.update-event").exists())
+                .andDo(document("create-event",
+                        links(
+                                linkWithRel("self").description("link to self"),
+                                linkWithRel("query-events").description("link to query"),
+                                linkWithRel("update-event").description("link to update")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content Type")
+                        ),
+                        requestFields(
+                                fieldWithPath("name").description("Name of new Event"),
+                                fieldWithPath("description").description("description of new Event"),
+                                fieldWithPath("beginEnrollmentDateTime").description("date time of begin enrollment of new event"),
+                                fieldWithPath("closeEnrollmentDateTime").description("date time of close enrollment of new event"),
+                                fieldWithPath("beginEventDateTime").description("date time of begin of new event"),
+                                fieldWithPath("endEventDateTime").description("date time of end  of new event"),
+                                fieldWithPath("location").description("location of new event"),
+                                fieldWithPath("basePrice").description("basePrice of new event"),
+                                fieldWithPath("maxPrice").description("maxPrice of new event"),
+                                fieldWithPath("limitOfEnrollment").description("limitOfEnrollment of new event")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.LOCATION).description("Location header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("Content Type")
+                        ),
+                        responseFields(
+                        //relaxedResponseFields( // 문서를 강제로 안 할경우
+                                fieldWithPath("id").description("identifier of new Event"),
+                                fieldWithPath("name").description("Name of new Event"),
+                                fieldWithPath("description").description("description of new Event"),
+                                fieldWithPath("beginEnrollmentDateTime").description("date time of begin enrollment of new event"),
+                                fieldWithPath("closeEnrollmentDateTime").description("date time of close enrollment of new event"),
+                                fieldWithPath("beginEventDateTime").description("date time of begin of new event"),
+                                fieldWithPath("endEventDateTime").description("date time of end  of new event"),
+                                fieldWithPath("location").description("location of new event"),
+                                fieldWithPath("basePrice").description("basePrice of new event"),
+                                fieldWithPath("maxPrice").description("maxPrice of new event"),
+                                fieldWithPath("limitOfEnrollment").description("limitOfEnrollment of new event"),
+                                fieldWithPath("free").description("it tells if this event is free event or not"),
+                                fieldWithPath("offline").description("it tells if this event is offline event or not"),
+                                fieldWithPath("eventStatus").description("event to Status"),
+                                fieldWithPath("eventStatus").description("event to Status"),
+                                fieldWithPath("eventStatus").description("event to Status"),
+                                fieldWithPath("eventStatus").description("event to Status")
+                        )
+                    ))
         ;
 
     }

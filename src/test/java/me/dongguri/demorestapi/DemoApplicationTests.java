@@ -1,11 +1,12 @@
 package me.dongguri.demorestapi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.dongguri.demorestapi.common.TestDescription;
 import me.dongguri.demorestapi.events.Event;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,6 +28,7 @@ class DemoApplicationTests {
     ObjectMapper objectMapper;
 
     @Test
+    @TestDescription("정상적으로 이벤트를 생성하는 테스트")
     void createEvent()  throws Exception{
         Event event = Event.builder()
                 .name("Spring")
