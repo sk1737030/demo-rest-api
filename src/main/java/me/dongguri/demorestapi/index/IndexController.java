@@ -14,6 +14,7 @@ public class IndexController {
     public RepresentationModel index() {
         var index = new RepresentationModel<>();
         index.add(linkTo(EventController.class).withRel("events"));
+
         return index;
     }
 }

@@ -14,8 +14,6 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 public class Event extends RepresentationModel<Event> {
-
-
     @Id @GeneratedValue
     private Integer id;
     private String name;

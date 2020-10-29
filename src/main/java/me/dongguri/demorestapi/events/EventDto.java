@@ -1,17 +1,17 @@
 package me.dongguri.demorestapi.events;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
-@Builder @NoArgsConstructor @AllArgsConstructor @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
 public class EventDto {
     @NotEmpty
     private String name;

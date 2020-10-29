@@ -19,22 +19,49 @@ public class ErrorsSerializer extends JsonSerializer<Errors> {
 
     @Override
     public void serialize(Errors errors, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+
+        jsonGenerator.writeFieldName("errors");
         jsonGenerator.writeStartArray();
+
+        errors.getFieldErrors().stream().forEach(e -> {
+            try {
+                jsonGenerator.writeStartObject();
+                jsonGenerator.writeStringField("objectName", e.getObjectName());
+                jsonGenerator.writeStringField("field", e.getField());
+                jsonGenerator.writeStringField("defaultMessage", e.getDefaultMessage());
+
+                Object rejectedValue = e.getRejectedValue();
+                if (rejectedValue != null) {
+                    jsonGenerator.writeStringField("rejectedValue", rejectedValue.toString());
+                } else {
+                    jsonGenerator.writeStringField("rejectedValue", "");
+                }
+                jsonGenerator.writeEndObject();
+            } catch (IOException e1) {
+                throw new RuntimeException(e1);
+            }
+        });
+        jsonGenerator.writeEndArray();
+    }
+
+}
+       /* jsonGenerator.writeStartArray();
         errors.getFieldErrors().stream().forEach(e -> {
             try {
                 jsonGenerator.writeStartObject(); // Json 오브젝트 만들기 시작
                 jsonGenerator.writeStringField("field", e.getField());
                 jsonGenerator.writeStringField("objectName", e.getObjectName());
-                jsonGenerator.writeStringField("code", e.getCode());
                 jsonGenerator.writeStringField("defaultMessage", e.getDefaultMessage());
                 
                 Object rejectedValue = e.getRejectedValue();
                 
                 if(rejectedValue != null) {
                     jsonGenerator.writeStringField("rejectedValue", rejectedValue.toString());
+                } else {
+                    jsonGenerator.writeStringField("rejectedValue", "");
                 }
 
-                jsonGenerator.writeEndObject(); // Json 오브젝트 만들기 종료 
+                jsonGenerator.writeEndObject(); // Json 오브젝트 만들기 종료
                 
             } catch (IOException ioException) {
                 ioException.printStackTrace();
@@ -49,8 +76,6 @@ public class ErrorsSerializer extends JsonSerializer<Errors> {
                 jsonGenerator.writeStringField("objectName", e.getObjectName());
                 jsonGenerator.writeStringField("code", e.getCode());
                 jsonGenerator.writeStringField("defaultMessage", e.getDefaultMessage());
-
-
                 jsonGenerator.writeEndObject();
             } catch (IOException ioException) {
                 ioException.printStackTrace();
@@ -59,3 +84,5 @@ public class ErrorsSerializer extends JsonSerializer<Errors> {
         jsonGenerator.writeEndArray(); // 배열로
     }
 }
+*/
+

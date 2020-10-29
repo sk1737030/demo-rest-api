@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.LocalDateTime;
 import java.util.stream.IntStream;
@@ -26,9 +27,8 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -57,9 +57,9 @@ public class EventControllerTests {
                 .description("REST API dev")
                 .beginEnrollmentDateTime(LocalDateTime.of(2018, 11, 23, 12, 12))
                 .closeEnrollmentDateTime(LocalDateTime.of(2018, 11, 24, 15, 12))
-                .beginEventDateTime(LocalDateTime.of(2018, 11, 12, 15, 11))
-                .endEventDateTime(LocalDateTime.of(2018, 11, 1, 15, 12))
-                .basePrice(10000)
+                .beginEventDateTime(LocalDateTime.of(2018, 11, 25, 15, 11))
+                .endEventDateTime(LocalDateTime.of(2019, 11, 1, 10, 12))
+                .basePrice(1)
                 .maxPrice(10)
                 .limitOfEnrollment(100)
                 .location("강념역 D2")
@@ -68,6 +68,7 @@ public class EventControllerTests {
         mockMvc.perform(post("/api/events")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaTypes.HAL_JSON_VALUE)
+                .characterEncoding("UTF-8")
                 .content(objectMapper.writeValueAsString(event))) // json으로
                 .andDo(print())
                 .andExpect(status().isCreated())
@@ -148,8 +149,8 @@ public class EventControllerTests {
                 .maxPrice(200)
                 .limitOfEnrollment(100)
                 .location("강념역 D2")
-                .free(true)
-                .offline(false)
+      //          .free(true)
+    //            .offline(false)
                 .build();
 
         mockMvc.perform(post("/api/events")
@@ -158,9 +159,9 @@ public class EventControllerTests {
                 .content(objectMapper.writeValueAsString(event))) // json으로
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(header().exists(HttpHeaders.LOCATION))
+//                .andExpect(header().exists(HttpHeaders.LOCATION))
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
-                .andExpect(jsonPath("id").exists())
+                /*.andExpect(jsonPath("id").exists())*/
                 .andExpect(jsonPath("free").value(false))
                 .andExpect(jsonPath("offline").value(true))
                 .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()));
@@ -199,9 +200,10 @@ public class EventControllerTests {
                 .content(this.objectMapper.writeValueAsString(eventDto))) // json으로
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("content[0].objectName").exists())
-                .andExpect(jsonPath("content[0].defaultMessage").exists())
-                .andExpect(jsonPath("content[0].code").exists())
+                .andExpect(jsonPath("errors[0].objectName").exists())
+                .andExpect(jsonPath("errors[0].defaultMessage").exists())
+                .andExpect(jsonPath("errors[0].field").exists())
+                .andExpect(jsonPath("errors[0].rejectedValue").exists())
                 .andExpect(jsonPath("_links.index").exists())
         ;
     }
@@ -210,9 +212,7 @@ public class EventControllerTests {
     @TestDescription("30개의 이벤트를 10개씩 두번째 페이지 조회화기")
     public void queryEvents() throws Exception {
         // Given
-        IntStream.range(0, 30).forEach(i -> {
-            this.generateEvent(i);
-        });
+        IntStream.range(0, 30).forEach(this::generateEvent);
 
         // When
         this.mockMvc.perform(get("/api/events")
@@ -241,14 +241,14 @@ public class EventControllerTests {
         // When & Then
         this.mockMvc.perform(get("/api/events/{id}", event.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("name").exists())
                 .andExpect(jsonPath("id").exists())
                 .andExpect(jsonPath("_links.self").exists())
                 .andExpect(jsonPath("_links.profile").exists())
+                .andDo(print())
                 .andDo(document("get-and-event")) // 문서화함
             ;
-
     }
+
     @Test
     @TestDescription("없는 이벤트는 조회했을 때 404 응답받기")
     public void getEvent404() throws Exception {
@@ -257,6 +257,34 @@ public class EventControllerTests {
                 .andExpect(status().isNotFound())
         ;
 
+    }
+
+    @Test
+    @TestDescription("수정하려는 이벤트가 없는 경우 404 응답받기")
+    public void updateEvent_get404() throws  Exception{
+        // Given
+        Event event = Event.builder()
+                    .id(1)
+                    .name("Spring")
+                    .description("REST API dev")
+                    .beginEnrollmentDateTime(LocalDateTime.of(2018, 11, 23, 12, 12))
+                    .closeEnrollmentDateTime(LocalDateTime.of(2018, 11, 24, 15, 12))
+                    .beginEventDateTime(LocalDateTime.of(2018, 11, 12, 15, 11))
+                    .endEventDateTime(LocalDateTime.of(2018, 11, 1, 15, 12))
+                    .basePrice(10000)
+                    .maxPrice(10)
+                    .limitOfEnrollment(100)
+                    .location("강념역 D2")
+                    .build();
+
+        // When
+        ResultActions perform =
+                this.mockMvc.perform(put("/api/events/")
+                    .contentType(MediaTypes.HAL_JSON_VALUE)
+                    .content(this.objectMapper.writeValueAsString(event)));
+
+        // Then
+        perform.andExpect(status().isNotFound());
     }
 
 
