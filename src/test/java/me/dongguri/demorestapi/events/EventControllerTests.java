@@ -27,7 +27,6 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -149,8 +148,8 @@ public class EventControllerTests {
                 .maxPrice(200)
                 .limitOfEnrollment(100)
                 .location("강념역 D2")
-      //          .free(true)
-    //            .offline(false)
+                //          .free(true)
+                //            .offline(false)
                 .build();
 
         mockMvc.perform(post("/api/events")
@@ -246,7 +245,7 @@ public class EventControllerTests {
                 .andExpect(jsonPath("_links.profile").exists())
                 .andDo(print())
                 .andDo(document("get-and-event")) // 문서화함
-            ;
+        ;
     }
 
     @Test
@@ -260,31 +259,150 @@ public class EventControllerTests {
     }
 
     @Test
-    @TestDescription("수정하려는 이벤트가 없는 경우 404 응답받기")
-    public void updateEvent_get404() throws  Exception{
+    @TestDescription("수정하려는  이벤트가 없는 경우 404 응답받기")
+    public void updateEvent_get404() throws Exception {
         // Given
         Event event = Event.builder()
-                    .id(1)
-                    .name("Spring")
-                    .description("REST API dev")
-                    .beginEnrollmentDateTime(LocalDateTime.of(2018, 11, 23, 12, 12))
-                    .closeEnrollmentDateTime(LocalDateTime.of(2018, 11, 24, 15, 12))
-                    .beginEventDateTime(LocalDateTime.of(2018, 11, 12, 15, 11))
-                    .endEventDateTime(LocalDateTime.of(2018, 11, 1, 15, 12))
-                    .basePrice(10000)
-                    .maxPrice(10)
-                    .limitOfEnrollment(100)
-                    .location("강념역 D2")
-                    .build();
+                .id(1)
+                .name("Spring")
+                .description("REST API dev")
+                .beginEnrollmentDateTime(LocalDateTime.of(2018, 11, 23, 12, 12))
+                .closeEnrollmentDateTime(LocalDateTime.of(2018, 11, 24, 15, 12))
+                .beginEventDateTime(LocalDateTime.of(2018, 11, 12, 15, 11))
+                .endEventDateTime(LocalDateTime.of(2018, 11, 1, 15, 12))
+                .basePrice(10000)
+                .maxPrice(10)
+                .limitOfEnrollment(100)
+                .location("강념역 D2")
+                .build();
 
         // When
         ResultActions perform =
                 this.mockMvc.perform(put("/api/events/")
-                    .contentType(MediaTypes.HAL_JSON_VALUE)
-                    .content(this.objectMapper.writeValueAsString(event)));
+                        .contentType(MediaTypes.HAL_JSON_VALUE)
+                        .content(this.objectMapper.writeValueAsString(event)));
 
         // Then
         perform.andExpect(status().isNotFound());
+
+    }
+
+    @Test
+    @TestDescription("입력 데이터가 이상한 경우 400 NOT_FOUND")
+    public void updateEvent_wrongInput_get400() throws Exception {
+        // Given
+        Event event = Event.builder()
+                .name("Spring")
+                .description("REST API dev")
+                .beginEnrollmentDateTime(LocalDateTime.of(2018, 11, 23, 12, 12))
+                .closeEnrollmentDateTime(LocalDateTime.of(2018, 11, 24, 15, 12))
+                .beginEventDateTime(LocalDateTime.of(2018, 11, 12, 15, 11))
+                .endEventDateTime(LocalDateTime.of(2018, 11, 1, 15, 12))
+                .basePrice(10000)
+                .maxPrice(10)
+                .limitOfEnrollment(100)
+                .location("강념역 D2")
+                .build();
+
+
+        // when
+        ResultActions perform = this.mockMvc.perform(put("/api/events/1")
+                .contentType(MediaTypes.HAL_JSON_VALUE)
+                .content(objectMapper.writeValueAsString(event)));
+
+
+        // then
+        perform.andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @TestDescription("도메인 로직으로 데이터 검증 실패한 경우 400 NOT_FOUND")
+    public void updateEvent_wrongDomain_get400() throws Exception {
+        // Given
+        Event event = Event.builder()
+//                .name("Spring")
+                .description("REST API dev")
+                .beginEnrollmentDateTime(LocalDateTime.of(2018, 11, 23, 12, 12))
+                .closeEnrollmentDateTime(LocalDateTime.of(2018, 11, 24, 15, 12))
+                .beginEventDateTime(LocalDateTime.of(2018, 11, 12, 15, 11))
+                .endEventDateTime(LocalDateTime.of(2018, 11, 1, 15, 12))
+                .basePrice(10000)
+                .maxPrice(10)
+                .limitOfEnrollment(100)
+                .location("강념역 D2")
+                .build();
+
+
+        // when
+        ResultActions perform = this.mockMvc.perform(put("/api/events/1")
+                .contentType(MediaTypes.HAL_JSON_VALUE)
+                .content(objectMapper.writeValueAsString(event)));
+
+
+        // then
+        perform.andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @TestDescription("이벤트를 정상적으로 수정했을 경우")
+    public void updateEvent() throws Exception {
+        // Give
+        Event generateEvent = generateEvent(200);
+
+        Event event = Event.builder()
+                .name("Spring")
+                .description("REST API dev")
+                .beginEnrollmentDateTime(LocalDateTime.of(2018, 11, 23, 12, 12))
+                .closeEnrollmentDateTime(LocalDateTime.of(2018, 11, 24, 15, 12))
+                .beginEventDateTime(LocalDateTime.of(2018, 11, 12, 15, 11))
+                .endEventDateTime(LocalDateTime.of(2019, 11, 1, 15, 12))
+                .basePrice(10000)
+                .maxPrice(10)
+                .limitOfEnrollment(100)
+                .location("강념역 D2")
+                .build();
+
+        // When
+        ResultActions resultActions = this.mockMvc.perform(put("/api/events/200")
+                .contentType(MediaTypes.HAL_JSON_VALUE))
+                .andDo(print());
+
+        // Then
+        resultActions.andExpect(status().isOk())
+
+
+        ;
+    }
+
+    @Test
+    @TestDescription("잘못된 권한으로 업데이트 할 경우 415")
+    public void updateEvent_unauthorized_get415() throws Exception {
+        // Given
+        Event event = Event.builder()
+                .name("Spring")
+                .description("REST API dev")
+                .beginEnrollmentDateTime(LocalDateTime.of(2018, 11, 23, 12, 12))
+                .closeEnrollmentDateTime(LocalDateTime.of(2018, 11, 24, 15, 12))
+                .beginEventDateTime(LocalDateTime.of(2018, 11, 12, 15, 11))
+                .endEventDateTime(LocalDateTime.of(2018, 11, 1, 15, 12))
+                .basePrice(10000)
+                .maxPrice(10)
+                .limitOfEnrollment(100)
+                .location("강념역 D2")
+                .build();
+
+
+        // when
+        ResultActions perform = this.mockMvc.perform(put("/api/events/1")
+                .contentType(MediaTypes.HAL_JSON_VALUE)
+                .content(objectMapper.writeValueAsString(event)));
+
+
+        // then
+        perform.andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 
 

@@ -9,6 +9,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 public class ErrorsResource extends EntityModel<Errors> {
     Errors contents;
+
     public ErrorsResource(Errors errors, Link... links) {
         this.contents = errors;
         add(linkTo(IndexController.class).withRel("index"));
