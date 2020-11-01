@@ -1,5 +1,6 @@
 package me.dongguri.demorestapi.events;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import me.dongguri.demorestapi.common.ErrorsResource;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -58,7 +59,7 @@ public class EventController {
 
         EventResource eventResource = new EventResource(newEvent);
 
-        eventResource.add(linkTo(EventController.class).withRel("query-events"));
+        eventResource.add(selfLinkBuilder.withRel("query-events"));
         eventResource.add(selfLinkBuilder.withRel("update-event"));
         eventResource.add(Link.of("/docs/index.html#resources-events-create", "profile"));
 
@@ -91,7 +92,7 @@ public class EventController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity updateEvent(@RequestBody @Valid EventDto eventDto, BindingResult errors, @PathVariable Integer id) {
+    public ResponseEntity updateEvent(@PathVariable Integer id, @RequestBody @Valid  EventDto eventDto, BindingResult errors) {
         Optional<Event> eventById = eventRepository.findById(id);
 
         if(eventById.isEmpty()) {
@@ -108,7 +109,11 @@ public class EventController {
             return badRequest(errors);
         }
 
-        Event event = modelMapper.map(eventDto, Event.class);
+        Event event = eventById.get();
+        modelMapper.map(eventDto, event);
+        event.update();
+
+        eventRepository.save(event);
 
         EventResource eventResource = new EventResource(event);
         eventResource.add(Link.of("/doc/index.html#resources-events-update","profile"));
