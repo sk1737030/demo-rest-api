@@ -109,13 +109,13 @@ public class EventController {
             return badRequest(errors);
         }
 
-        Event event = eventById.get();
-        modelMapper.map(eventDto, event);
-        event.update();
+        Event existingEvent = eventById.get();
+        // Service를 안만들면 dirtychecking 안일어난다.
+        this.modelMapper.map(eventDto, existingEvent);
+        existingEvent.update();
+        Event savedEvent = eventRepository.save(existingEvent);
 
-        eventRepository.save(event);
-
-        EventResource eventResource = new EventResource(event);
+        EventResource eventResource = new EventResource(savedEvent);
         eventResource.add(Link.of("/doc/index.html#resources-events-update","profile"));
 
         return ResponseEntity.ok().body(eventResource);

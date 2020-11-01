@@ -7,6 +7,7 @@ import org.apache.tomcat.util.file.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -48,6 +49,9 @@ public class EventControllerTests {
 
     @Autowired
     EventRepository eventRepository;
+
+    @Autowired
+    ModelMapper modelMapper;
 
     @Test
     @TestDescription("정상적으로 이벤트가생성 됨")
@@ -175,6 +179,7 @@ public class EventControllerTests {
         this.mockMvc.perform(post("/api/events")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(this.objectMapper.writeValueAsString(eventDto)))
+                .andDo(print())
                 .andExpect(status().isBadRequest());
     }
 
@@ -263,7 +268,7 @@ public class EventControllerTests {
     @TestDescription("수정하려는  이벤트가 없는 경우 404 응답받기")
     public void updateEvent_get404() throws Exception {
         // Given
-        EventDto event = EventDto.builder()
+        EventDto eventDto = EventDto.builder()
                 .name("Spring")
                 .description("REST API dev")
                 .beginEnrollmentDateTime(LocalDateTime.of(2018, 11, 23, 12, 12))
@@ -280,39 +285,33 @@ public class EventControllerTests {
         ResultActions perform =
                 this.mockMvc.perform(put("/api/events/200")
                         .contentType(MediaTypes.HAL_JSON_VALUE)
-                        .content(this.objectMapper.writeValueAsString(event)));
+                        .content(this.objectMapper.writeValueAsString(eventDto)));
 
         // Then
-        perform.andExpect(status().isNotFound());
+        perform.andDo(print())
+                .andExpect(status().isNotFound());
 
     }
 
     @Test
     @TestDescription("입력 데이터가 이상한 경우 400 NOT_FOUND")
     public void updateEvent_wrongInput_get400() throws Exception {
+        // Given
         Event generatedEvent = generateEvent(1);
 
-        // Given
-        Event event = Event.builder()
-                .id(1)
-                .name("Spring")
-                .description("REST API dev")
-                .beginEnrollmentDateTime(LocalDateTime.of(2018, 11, 23, 12, 12))
-                .closeEnrollmentDateTime(LocalDateTime.of(2018, 11, 24, 15, 12))
-                .beginEventDateTime(LocalDateTime.of(2018, 11, 12, 15, 11))
-                .endEventDateTime(LocalDateTime.of(2018, 11, 1, 15, 12))
-                .basePrice(10000)
-                .maxPrice(10)
-                .limitOfEnrollment(100)
-                .location("강념역 D2")
-                .build();
-
+        EventDto eventDto = modelMapper.map(generatedEvent,EventDto.class);
+        eventDto.setBasePrice(20000);
+        eventDto.setMaxPrice(1000);
 
         // when
-        ResultActions perform = this.mockMvc.perform(put("/api/events")
+        ResultActions perform = this.mockMvc.perform(put("/api/events/{id}", generatedEvent.getId())
                 .contentType(MediaTypes.HAL_JSON_VALUE)
                 .accept(MediaTypes.HAL_JSON_VALUE)
-                .content(objectMapper.writeValueAsString(event)));
+                .content(objectMapper.writeValueAsString(eventDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                ;
+
 
 
         // then
@@ -356,26 +355,18 @@ public class EventControllerTests {
     @TestDescription("이벤트를 정상적으로 수정했을 경우")
     public void updateEvent() throws Exception {
         // Give
-        Event generateEvent = generateEvent(200);
+        Event event = generateEvent(200);
 
-        EventDto event = EventDto.builder()
-                .name("Spring")
-                .description("REST API dev")
-                .beginEnrollmentDateTime(LocalDateTime.of(2018, 11, 23, 12, 12))
-                .closeEnrollmentDateTime(LocalDateTime.of(2018, 11, 24, 15, 12))
-                .beginEventDateTime(LocalDateTime.of(2018, 11, 25, 15, 11))
-                .endEventDateTime(LocalDateTime.of(2019, 11, 1, 10, 12))
-                .basePrice(1)
-                .maxPrice(10)
-                .limitOfEnrollment(100)
-                .location("강념역 D2")
-                .build();
+        EventDto eventDto = this.modelMapper.map(event, EventDto.class);
+        String updateName = "UpdatedEvent";
+        eventDto.setName(updateName);
+
 
         // When
-        ResultActions resultActions = this.mockMvc.perform(put("/api/events/1")
+        ResultActions resultActions = this.mockMvc.perform(put("/api/events/{id}",event.getId())
                 .contentType(MediaTypes.HAL_JSON_VALUE)
                 .accept(MediaTypes.HAL_JSON_VALUE)
-                .content(objectMapper.writeValueAsString(event)));
+                .content(objectMapper.writeValueAsString(eventDto)));
 
 
         // Then
@@ -386,7 +377,7 @@ public class EventControllerTests {
                 .andExpect(jsonPath("description").value(Matchers.is("REST API dev")))
                 .andExpect(jsonPath("_links.self").exists())
                 .andExpect(jsonPath("_links.profile").exists())
-                .andDo(document("create-update",
+                .andDo(document("update-event",
                        links(linkWithRel("self").description("link to Self"),
                              linkWithRel("profile").description("link to profile")
                        ),
@@ -469,6 +460,17 @@ public class EventControllerTests {
         Event event = Event.builder()
                 .name("event " + i)
                 .description("test event")
+                .description("REST API dev")
+                .beginEnrollmentDateTime(LocalDateTime.of(2018, 11, 23, 12, 12))
+                .closeEnrollmentDateTime(LocalDateTime.of(2018, 11, 24, 15, 12))
+                .beginEventDateTime(LocalDateTime.of(2018, 11, 25, 15, 11))
+                .endEventDateTime(LocalDateTime.of(2019, 11, 1, 10, 12))
+                .basePrice(1)
+                .maxPrice(10)
+                .limitOfEnrollment(100)
+                .location("강념역 D2")
+                .free(false)
+                .offline(true)
                 .build();
 
         return this.eventRepository.save(event);
