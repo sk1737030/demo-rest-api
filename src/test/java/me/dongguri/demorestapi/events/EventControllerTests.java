@@ -1,6 +1,7 @@
 package me.dongguri.demorestapi.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.dongguri.demorestapi.common.BaseControllerTest;
 import me.dongguri.demorestapi.common.RestDocsConfiguration;
 import me.dongguri.demorestapi.common.TestDescription;
 import org.apache.tomcat.util.file.Matcher;
@@ -33,25 +34,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureMockMvc// mock mvc를 사용할 수 있게된다.
-@AutoConfigureRestDocs
-@Import(RestDocsConfiguration.class)// 다른 스프링 Bean설정 파일을 읽어오는 방법
-@ActiveProfiles("test") // aplication-test를 사용하여 씀 (applcation + application-test) 를 같이쓴다 override하게 됨
-public class EventControllerTests {
 
-    @Autowired
-    MockMvc mockMvc;
-
-    @Autowired
-    ObjectMapper objectMapper; // 자바Spec에 맞게 등록된 Bean Serialize로  변환해준다.
+public class EventControllerTests extends BaseControllerTest {
 
     @Autowired
     EventRepository eventRepository;
-
-    @Autowired
-    ModelMapper modelMapper;
 
     @Test
     @TestDescription("정상적으로 이벤트가생성 됨")
@@ -163,9 +150,9 @@ public class EventControllerTests {
                 .andExpect(status().isBadRequest())
 //                .andExpect(header().exists(HttpHeaders.LOCATION))
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
-                /*.andExpect(jsonPath("id").exists())*/
-      //          .andExpect(jsonPath("free").value(false))
-       //         .andExpect(jsonPath("offline").value(true))
+        /*.andExpect(jsonPath("id").exists())*/
+        //          .andExpect(jsonPath("free").value(false))
+        //         .andExpect(jsonPath("offline").value(true))
         //        .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()))
         ;
     }
@@ -299,7 +286,7 @@ public class EventControllerTests {
         // Given
         Event generatedEvent = generateEvent(1);
 
-        EventDto eventDto = modelMapper.map(generatedEvent,EventDto.class);
+        EventDto eventDto = modelMapper.map(generatedEvent, EventDto.class);
         eventDto.setBasePrice(20000);
         eventDto.setMaxPrice(1000);
 
@@ -309,9 +296,7 @@ public class EventControllerTests {
                 .accept(MediaTypes.HAL_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(eventDto)))
                 .andDo(print())
-                .andExpect(status().isBadRequest())
-                ;
-
+                .andExpect(status().isBadRequest());
 
 
         // then
@@ -363,7 +348,7 @@ public class EventControllerTests {
 
 
         // When
-        ResultActions resultActions = this.mockMvc.perform(put("/api/events/{id}",event.getId())
+        ResultActions resultActions = this.mockMvc.perform(put("/api/events/{id}", event.getId())
                 .contentType(MediaTypes.HAL_JSON_VALUE)
                 .accept(MediaTypes.HAL_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(eventDto)));
@@ -378,9 +363,9 @@ public class EventControllerTests {
                 .andExpect(jsonPath("_links.self").exists())
                 .andExpect(jsonPath("_links.profile").exists())
                 .andDo(document("update-event",
-                       links(linkWithRel("self").description("link to Self"),
-                             linkWithRel("profile").description("link to profile")
-                       ),
+                        links(linkWithRel("self").description("link to Self"),
+                                linkWithRel("profile").description("link to profile")
+                        ),
                         requestHeaders(
                                 headerWithName(HttpHeaders.ACCEPT).description("accept header"),
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content Type")
@@ -420,7 +405,7 @@ public class EventControllerTests {
                                 fieldWithPath("eventStatus").description("event to Status"),
                                 fieldWithPath("_links.self.href").description("link to self"),
                                 fieldWithPath("_links.profile.href").description("link to profile")
-                       ))
+                        ))
                 )
         ;
     }
