@@ -46,11 +46,12 @@ public class AccountServiceTest {
         this.accountService.saveAccount(account);
 
         // When
-        UserDetailsService userDetailsService = (UserDetailsService) accountService;
+        UserDetailsService userDetailsService = accountService;
         UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
 
+
         // Then
-        assertThat(this.passwordEncoder.matches(password, userDetails.getPassword())).isEqualTo(password);
+        assertThat(this.passwordEncoder.matches(password, userDetails.getPassword())).isEqualTo(true);
     }
 
 
