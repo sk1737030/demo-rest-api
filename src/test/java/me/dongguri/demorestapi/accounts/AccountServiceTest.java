@@ -59,7 +59,7 @@ public class AccountServiceTest {
     public void findByUserNameFail() {
         String username = "sk";
 
-
+        // Given
         // 1 방식
         // expected 먼저 선언해야함.
         expectedException.expect(UsernameNotFoundException.class);

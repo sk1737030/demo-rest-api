@@ -32,6 +32,8 @@ public class AppConfig {
         return new ApplicationRunner() {
             @Autowired
             AccountService accountService;
+
+            // 기본으로 하나생성
             @Override
             public void run(ApplicationArguments args) throws Exception {
                 Account dongguri = Account.builder()
