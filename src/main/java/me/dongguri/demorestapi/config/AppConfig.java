@@ -27,6 +27,7 @@ public class AppConfig {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
+
     @Bean
     public ApplicationRunner applicationRunner() {
         return new ApplicationRunner() {
@@ -36,12 +37,19 @@ public class AppConfig {
             // 기본으로 하나생성
             @Override
             public void run(ApplicationArguments args) throws Exception {
-                Account dongguri = Account.builder()
-                        .email("donggho@email.com")
-                        .password("dongguri")
+                Account user = Account.builder()
+                        .email("user@email.com")
+                        .password("user")
                         .roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
                         .build();
-                accountService.saveAccount(dongguri);
+                accountService.saveAccount(user);
+
+                Account admin = Account.builder()
+                        .email("admin@email.com")
+                        .password("admin")
+                        .roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
+                        .build();
+                accountService.saveAccount(admin);
             }
         };
     }
