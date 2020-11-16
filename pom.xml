@@ -79,7 +79,6 @@
             <optional>true</optional>
         </dependency>
 
-
         <!-- https://mvnrepository.com/artifact/pl.pragmatists/JUnitParams -->
         <dependency>
             <groupId>pl.pragmatists</groupId>

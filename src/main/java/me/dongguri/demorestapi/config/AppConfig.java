@@ -3,6 +3,7 @@ package me.dongguri.demorestapi.config;
 import me.dongguri.demorestapi.accounts.Account;
 import me.dongguri.demorestapi.accounts.AccountRole;
 import me.dongguri.demorestapi.accounts.AccountService;
+import me.dongguri.demorestapi.common.AppProperties;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -34,19 +35,22 @@ public class AppConfig {
             @Autowired
             AccountService accountService;
 
+            @Autowired
+            AppProperties appProperties;
+
             // 기본으로 하나생성
             @Override
             public void run(ApplicationArguments args) throws Exception {
                 Account user = Account.builder()
-                        .email("user@email.com")
-                        .password("user")
+                        .email(appProperties.getUserUsername())
+                        .password(appProperties.getUserPassword())
                         .roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
                         .build();
                 accountService.saveAccount(user);
 
                 Account admin = Account.builder()
-                        .email("admin@email.com")
-                        .password("admin")
+                        .email(appProperties.getAdminUsername())
+                        .password(appProperties.getAdminPassword())
                         .roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
                         .build();
                 accountService.saveAccount(admin);

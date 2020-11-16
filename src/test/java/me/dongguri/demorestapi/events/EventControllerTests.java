@@ -4,6 +4,7 @@ import me.dongguri.demorestapi.accounts.Account;
 import me.dongguri.demorestapi.accounts.AccountRepository;
 import me.dongguri.demorestapi.accounts.AccountRole;
 import me.dongguri.demorestapi.accounts.AccountService;
+import me.dongguri.demorestapi.common.AppProperties;
 import me.dongguri.demorestapi.common.BaseControllerTest;
 import me.dongguri.demorestapi.common.TestDescription;
 import org.hamcrest.Matchers;
@@ -41,6 +42,9 @@ public class EventControllerTests extends BaseControllerTest {
 
     @Autowired
     AccountRepository accountRepository;
+
+    @Autowired
+    AppProperties appProperties;
 
     @Before
     public void setUp() {
@@ -141,24 +145,18 @@ public class EventControllerTests extends BaseControllerTest {
 
     private String getAccessToken() throws Exception {
         // Given
-        String username = "dongguri@naver.com";
-        String password = "dongguri";
-
         Account dongguri = Account.builder()
-                .email(username)
-                .password(password)
+                .email(appProperties.getUserUsername())
+                .password(appProperties.getUserPassword())
                 .roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
                 .build();
         this.accountService.saveAccount(dongguri);
 
-        String clinetId = "myApp";
-        String clinetSecret = "pass";
-
         // When & Then
         ResultActions perform = this.mockMvc.perform(post("/oauth/token")
-                .with(httpBasic(clinetId, clinetSecret))
-                .param("username", username)
-                .param("password", password)
+                .with(httpBasic(appProperties.getClientId(), appProperties.getClientSecret()))
+                .param("username", appProperties.getUserUsername())
+                .param("password", appProperties.getUserPassword())
                 .param("grant_type", "password"));
 
         var responseBody = perform.andReturn().getResponse().getContentAsString();
