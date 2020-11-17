@@ -1,6 +1,7 @@
 package me.dongguri.demorestapi.events;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import me.dongguri.demorestapi.accounts.Account;
+import me.dongguri.demorestapi.accounts.CurrentUser;
 import me.dongguri.demorestapi.common.ErrorsResource;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -9,7 +10,10 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -39,7 +43,9 @@ public class EventController {
      * 자바스펙준수 할경우 json으로 자동변환해준다
      */
     @PostMapping
-    public ResponseEntity createEvent(@RequestBody @Valid EventDto eventDto, BindingResult errors) {
+    public ResponseEntity createEvent(@RequestBody @Valid EventDto eventDto,
+                                      BindingResult errors,
+                                      @CurrentUser Account account) {
         if (errors.hasErrors()) {
             return badRequest(errors);
         }
@@ -52,6 +58,7 @@ public class EventController {
 
         Event event = modelMapper.map(eventDto, Event.class);
         event.update();
+        event.setManager(account);
 
         Event newEvent = this.eventRepository.save(event);
         WebMvcLinkBuilder selfLinkBuilder = linkTo(EventController.class).slash(newEvent.getId());
@@ -67,17 +74,27 @@ public class EventController {
     }
 
     @GetMapping
-    public ResponseEntity queryEvents(Pageable pageable, PagedResourcesAssembler<Event> assembler) {
+    public ResponseEntity queryEvents(Pageable pageable, PagedResourcesAssembler<Event> assembler
+            /*, @AuthenticationPrincipal AccountAdapter currentUser*/
+            , @CurrentUser Account currentUser) {
         Page<Event> page = this.eventRepository.findAll(pageable);
 
         var pagedResources = assembler.toModel(page, EventResource::new);
         pagedResources.add(Link.of("/docs/index.html#resources-events-list", "profile"));
 
+        if (currentUser != null) {
+            pagedResources.add(linkTo(EventController.class).withRel("create-event"));
+        }
+
         return ResponseEntity.ok(pagedResources);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity getEvent(@PathVariable Integer id) {
+    public ResponseEntity getEvent(@PathVariable Integer id,
+                                   @CurrentUser Account currentUser) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         Optional<Event> optionalEvent = this.eventRepository.findById(id);
 
         if (optionalEvent.isEmpty()) {
@@ -88,11 +105,18 @@ public class EventController {
         EventResource eventResource = new EventResource(event); // Resource 생성
         eventResource.add(Link.of("/docs/index.html#resources-events-get", "profile"));
 
+        if(event.getManager().equals(currentUser)) {
+            eventResource.add(linkTo(EventController.class).slash(event.getId()).withRel("update-event"));
+            // update할 수 있는 link 주기
+        }
+
         return ResponseEntity.ok(eventResource);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity updateEvent(@PathVariable Integer id, @RequestBody @Valid  EventDto eventDto, BindingResult errors) {
+    public ResponseEntity updateEvent(@PathVariable Integer id,
+                                      @RequestBody @Valid  EventDto eventDto, BindingResult errors,
+                                      @CurrentUser Account currentUser) {
         Optional<Event> eventById = eventRepository.findById(id);
 
         if(eventById.isEmpty()) {
@@ -109,8 +133,11 @@ public class EventController {
             return badRequest(errors);
         }
 
-        Event existingEvent = eventById.get();
-        // Service를 안만들면 dirtychecking 안일어난다.
+        Event existingEvent = eventById.get(); // Service를 안만들면 dirtychecking 안일어난다.
+        if(!existingEvent.getManager().equals(currentUser)) {
+            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
+        }
+
         this.modelMapper.map(eventDto, existingEvent);
         existingEvent.update();
         Event savedEvent = eventRepository.save(existingEvent);
