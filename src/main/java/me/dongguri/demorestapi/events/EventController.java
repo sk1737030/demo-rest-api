@@ -105,7 +105,7 @@ public class EventController {
         EventResource eventResource = new EventResource(event); // Resource 생성
         eventResource.add(Link.of("/docs/index.html#resources-events-get", "profile"));
 
-        if(event.getManager().equals(currentUser)) {
+        if (currentUser != null && event.getManager().equals(currentUser)) {
             eventResource.add(linkTo(EventController.class).slash(event.getId()).withRel("update-event"));
             // update할 수 있는 link 주기
         }
@@ -115,26 +115,27 @@ public class EventController {
 
     @PutMapping("/{id}")
     public ResponseEntity updateEvent(@PathVariable Integer id,
-                                      @RequestBody @Valid  EventDto eventDto, BindingResult errors,
+                                      @RequestBody @Valid EventDto eventDto, BindingResult errors,
                                       @CurrentUser Account currentUser) {
         Optional<Event> eventById = eventRepository.findById(id);
 
-        if(eventById.isEmpty()) {
+        if (eventById.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        if(errors.hasErrors()) {
+        if (errors.hasErrors()) {
             return badRequest(errors);
         }
 
         eventValidator.validate(eventDto, errors);
 
-        if(errors.hasErrors()) {
+        if (errors.hasErrors()) {
             return badRequest(errors);
         }
 
         Event existingEvent = eventById.get(); // Service를 안만들면 dirtychecking 안일어난다.
-        if(!existingEvent.getManager().equals(currentUser)) {
+
+        if (currentUser != null && !existingEvent.getManager().equals(currentUser)) {
             return new ResponseEntity(HttpStatus.UNAUTHORIZED);
         }
 
@@ -143,7 +144,7 @@ public class EventController {
         Event savedEvent = eventRepository.save(existingEvent);
 
         EventResource eventResource = new EventResource(savedEvent);
-        eventResource.add(Link.of("/doc/index.html#resources-events-update","profile"));
+        eventResource.add(Link.of("/doc/index.html#resources-events-update", "profile"));
 
         return ResponseEntity.ok().body(eventResource);
     }

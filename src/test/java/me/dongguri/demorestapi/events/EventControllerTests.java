@@ -390,7 +390,6 @@ public class EventControllerTests extends BaseControllerTest {
         String updateName = "UpdatedEvent";
         eventDto.setName(updateName);
 
-
         // When
         ResultActions resultActions = this.mockMvc.perform(put("/api/events/{id}", event.getId())
                 .header(HttpHeaders.AUTHORIZATION, getBearereToken())
@@ -502,6 +501,8 @@ public class EventControllerTests extends BaseControllerTest {
                 .free(false)
                 .offline(true)
                 .build();
+
+
 
         return this.eventRepository.save(event);
     }
