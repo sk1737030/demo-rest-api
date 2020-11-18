@@ -52,18 +52,6 @@ public class EventTest {
 
         // then
         assertThat(event.isFree()).isEqualTo(isFree);
-
-       /*
-        // Given
-        event = Event.builder()
-                .basePrice(0)
-                .maxPrice(100)
-                .build();
-
-        // when
-        event.update();
-
-        assertThat(event.isFree()).isFalse();*/
     }
 
     private Object[] parametersForTestFree() {

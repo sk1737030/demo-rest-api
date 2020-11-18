@@ -1,8 +1,10 @@
 package me.dongguri.demorestapi.events;
 
-import org.springframework.hateoas.EntityModel;
+import
+        org.springframework.hateoas.EntityModel;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+
 
 
 public class EventResource extends EntityModel<Event> {

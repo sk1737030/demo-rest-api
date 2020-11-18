@@ -15,6 +15,8 @@ public class ErrorsResource extends EntityModel<Errors> {
         add(linkTo(IndexController.class).withRel("index"));
     }
 
+
+
     @Override
     public Errors getContent() {
         return this.contents;

@@ -2,9 +2,9 @@ package me.dongguri.demorestapi.config;
 
 import me.dongguri.demorestapi.accounts.AccountService;
 import me.dongguri.demorestapi.common.AppProperties;
-import me.dongguri.demorestapi.common.BaseControllerTest;
-import me.dongguri.demorestapi.common.TestDescription;
-import org.junit.Test;
+import me.dongguri.demorestapi.common.BaseTest;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class AuthServerConfigTest extends BaseControllerTest {
+public class AuthServerConfigTest extends BaseTest {
     @Autowired
     AccountService accountService;
 
@@ -20,7 +20,7 @@ public class AuthServerConfigTest extends BaseControllerTest {
     AppProperties appProperties;
 
     @Test
-    @TestDescription("이증 토큰을 발급 받는 테스트")
+    @DisplayName("이증 토큰을 발급 받는 테스트")
     public void getAuthToken() throws Exception {
         // When & Then
         this.mockMvc.perform(post("/oauth/token")
