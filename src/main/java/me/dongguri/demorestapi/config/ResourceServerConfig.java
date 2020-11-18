@@ -28,7 +28,7 @@ public class ResourceServerConfig implements ResourceServerConfigurer {
             .anonymous()
                 .and()
             .authorizeRequests()
-                .mvcMatchers(HttpMethod.GET, "/api/**")
+                .mvcMatchers(HttpMethod.GET, "/**")
                     .permitAll()
                 .anyRequest()
                     .authenticated()

@@ -1,7 +1,9 @@
 package me.dongguri.demorestapi.events;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.*;
 import me.dongguri.demorestapi.accounts.Account;
+import me.dongguri.demorestapi.accounts.AccountSerializer;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
@@ -32,9 +34,8 @@ public class Event extends RepresentationModel<Event> {
     @Enumerated(EnumType.STRING)
     private EventStatus eventStatus = EventStatus.DRAFT;
     @ManyToOne
+    @JsonSerialize(using = AccountSerializer.class) // Mapping 할 때 Custom Serializer 사용.
     private Account manager;
-
-
 
     public void update() {
         // update Free

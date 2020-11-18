@@ -105,7 +105,7 @@ public class EventController {
         EventResource eventResource = new EventResource(event); // Resource 생성
         eventResource.add(Link.of("/docs/index.html#resources-events-get", "profile"));
 
-        if (currentUser != null && event.getManager().equals(currentUser)) {
+        if (event.getManager().equals(currentUser)) {
             eventResource.add(linkTo(EventController.class).slash(event.getId()).withRel("update-event"));
             // update할 수 있는 link 주기
         }
@@ -135,7 +135,7 @@ public class EventController {
 
         Event existingEvent = eventById.get(); // Service를 안만들면 dirtychecking 안일어난다.
 
-        if (currentUser != null && !existingEvent.getManager().equals(currentUser)) {
+        if (!existingEvent.getManager().equals(currentUser)) {
             return new ResponseEntity(HttpStatus.UNAUTHORIZED);
         }
 
